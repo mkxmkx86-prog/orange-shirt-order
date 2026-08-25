@@ -14,12 +14,12 @@ import {
    （Firebase Console → 專案設定 → 你的應用程式 → SDK 設定）
 --------------------------------------------------------- */
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyDe9sv_Ajj5cWIP-iMF-csQ75cVtVahcYM",
+  authDomain:        "hnes-orange-shirt.firebaseapp.com",
+  projectId:         "hnes-orange-shirt",
+  storageBucket:     "hnes-orange-shirt.firebasestorage.app",
+  messagingSenderId: "444585899877",
+  appId:             "1:444585899877:web:3f16919e4df4926734d38c"
 };
 
 const app = initializeApp(firebaseConfig);

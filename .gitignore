@@ -3,3 +3,8 @@ demo.html
 demo.js
 demo-mock.js
 .claude/
+node_modules/
+package-lock.json
+package.json
+.cfg.json
+firebase-debug.log
