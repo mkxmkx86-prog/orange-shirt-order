@@ -20,16 +20,18 @@ service cloud.firestore {
     match /orders/{orderId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(
-                         ['gradeClass','studentName','size','quantity',
-                          'unitPrice','subtotal','timestamp'])
+                         ['gradeClass','studentName','size','quantity','timestamp'])
                     && request.resource.data.studentName is string
                     && request.resource.data.studentName.size() > 0
                     && request.resource.data.studentName.size() <= 20
                     && request.resource.data.quantity is int
                     && request.resource.data.quantity >= 1
-                    && request.resource.data.unitPrice == 200
-                    && request.resource.data.subtotal ==
-                       request.resource.data.quantity * 200
+                    // 金額欄位為選填（相容舊版快取的前端），但若有就必須正確
+                    && (!('unitPrice' in request.resource.data)
+                        || request.resource.data.unitPrice == 200)
+                    && (!('subtotal' in request.resource.data)
+                        || request.resource.data.subtotal ==
+                           request.resource.data.quantity * 200)
                     && request.resource.data.gradeClass in
                        ['一甲','二甲','三甲','四甲','五甲','六甲']
                     && request.resource.data.size in
