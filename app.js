@@ -30,13 +30,14 @@ const ADMIN_PASSWORD = "hnes5901529";
 const CLASSES = ["一甲", "二甲", "三甲", "四甲", "五甲", "六甲"];
 const SIZES   = ["8號", "9號", "10號", "XS", "S", "M", "L", "XL", "2L", "3XL"];
 const DEFAULT_STOCK = 30;               // 初始化時每個尺寸預設庫存
+const UNIT_PRICE    = 200;              // 每件單價（元）
 
 const INV_COL    = "inventory";
 const ORDERS_COL = "orders";
 
 /* --------------------- 狀態 --------------------- */
 let inventory    = {};   // { "M": 12, ... }
-let orders       = [];   // [{id, gradeClass, studentName, size, quantity, timestamp}]
+let orders       = [];   // [{id, gradeClass, studentName, size, quantity, unitPrice, subtotal, timestamp}]
 let selectedSize = null;
 let isAdmin      = false;
 let unsubOrders  = null;
@@ -52,6 +53,9 @@ function toast(msg, isErr = false) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
 }
+function money(n) { return "NT$ " + Number(n || 0).toLocaleString("zh-TW"); }
+/** 舊訂單若沒有 subtotal 欄位，以數量 x 單價回推 */
+function amountOf(o) { return Number(o.subtotal ?? (Number(o.quantity) || 0) * UNIT_PRICE); }
 function fmtTime(ts) {
   if (!ts) return "—";
   const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -97,6 +101,8 @@ async function placeOrderTransaction({ gradeClass, studentName, size, quantity }
       studentName,
       size,
       quantity,
+      unitPrice: UNIT_PRICE,                 // 保留下單當時的單價
+      subtotal:  UNIT_PRICE * quantity,      // 應繳金額
       timestamp: serverTimestamp()
     });
   });
@@ -192,6 +198,7 @@ function updateQtyLimit() {
   if (!selectedSize) {
     qty.max = 1; qty.value = 1; qty.disabled = true;
     $("qtyHint").textContent = "請先選擇尺寸";
+    updateAmount();
     return;
   }
   const max = inventory[selectedSize] ?? 0;
@@ -199,7 +206,16 @@ function updateQtyLimit() {
   qty.max = max;
   if (Number(qty.value) > max) qty.value = max;
   if (Number(qty.value) < 1) qty.value = 1;
-  $("qtyHint").textContent = `「${selectedSize}」最多可訂 ${max} 件`;
+  $("qtyHint").textContent = `「${selectedSize}」最多可訂 ${max} 件（每件 ${UNIT_PRICE} 元）`;
+  updateAmount();
+}
+
+/** 依目前選取的尺寸與數量，即時算出應繳金額 */
+function updateAmount() {
+  const q = parseInt($("quantity").value, 10);
+  const ok = selectedSize && Number.isInteger(q) && q >= 1;
+  $("amountText").textContent = ok ? `${money(q * UNIT_PRICE)}` : "—";
+  $("amountText").title = ok ? `${q} 件 × ${UNIT_PRICE} 元` : "";
 }
 
 async function handleSubmit(e) {
@@ -224,7 +240,9 @@ async function handleSubmit(e) {
 
   try {
     await placeOrderTransaction({ gradeClass, studentName, size, quantity });
-    $("successDetail").textContent = `${gradeClass}　${studentName}　${size}　${quantity} 件`;
+    $("successDetail").innerHTML =
+      `${gradeClass}　${studentName}　${size}　${quantity} 件<br>` +
+      `應繳金額 <b>${money(quantity * UNIT_PRICE)}</b>，請向導師繳費。`;
     $("orderFormWrap").hidden = true;
     $("successBox").hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -249,6 +267,7 @@ function resetForm() {
   $("orderForm").reset();
   selectedSize = null;
   renderSizeGrid();
+  updateAmount();
   $("orderError").hidden = true;
 }
 
@@ -317,6 +336,7 @@ function renderInventoryTable() {
       <td><b>${size}</b></td>
       <td class="stock-cell ${stock === 0 ? "stock-0" : ""}">${stock}</td>
       <td>${sold[size] || 0}</td>
+      <td>${money((sold[size] || 0) * UNIT_PRICE)}</td>
       <td>
         <input type="number" min="0" step="1" value="${stock}" data-size="${size}">
         <button class="btn-mini" data-save="${size}">更新</button>
@@ -342,10 +362,12 @@ function renderInventoryTable() {
 
   const totalStock = SIZES.reduce((a, s) => a + (inventory[s] ?? 0), 0);
   const totalSold  = Object.values(sold).reduce((a, b) => a + b, 0);
+  const totalMoney = orders.reduce((a, o) => a + amountOf(o), 0);
   $("statsBar").innerHTML = `
     <div class="stat"><b>${orders.length}</b><span>訂單筆數</span></div>
     <div class="stat"><b>${totalSold}</b><span>已售出件數</span></div>
-    <div class="stat"><b>${totalStock}</b><span>剩餘總庫存</span></div>`;
+    <div class="stat"><b>${totalStock}</b><span>剩餘總庫存</span></div>
+    <div class="stat"><b>${money(totalMoney)}</b><span>應收總金額</span></div>`;
 }
 
 function filteredOrders() {
@@ -374,7 +396,7 @@ function renderOrders() {
   tbody.innerHTML = "";
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:#8a7d70">目前沒有符合條件的訂單。</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:#8a7d70">目前沒有符合條件的訂單。</td></tr>`;
   } else {
     list.forEach((o) => {
       const tr = document.createElement("tr");
@@ -384,6 +406,7 @@ function renderOrders() {
         <td>${o.studentName}</td>
         <td>${o.size}</td>
         <td>${o.quantity}</td>
+        <td>${money(amountOf(o))}</td>
         <td><button class="btn-mini btn-del" data-del="${o.id}">刪除</button></td>`;
       tbody.appendChild(tr);
     });
@@ -392,15 +415,17 @@ function renderOrders() {
     });
   }
 
-  const totalQty = list.reduce((a, o) => a + (Number(o.quantity) || 0), 0);
-  $("orderCount").textContent = `顯示 ${list.length} 筆訂單，合計 ${totalQty} 件。`;
+  const totalQty   = list.reduce((a, o) => a + (Number(o.quantity) || 0), 0);
+  const totalMoney = list.reduce((a, o) => a + amountOf(o), 0);
+  $("orderCount").textContent =
+    `顯示 ${list.length} 筆訂單，合計 ${totalQty} 件，金額 ${money(totalMoney)}。`;
 }
 
 /** 刪除訂單並把庫存加回去（同樣以 transaction 保持一致） */
 async function removeOrder(id) {
   const o = orders.find((x) => x.id === id);
   if (!o) return;
-  if (!confirm(`確定刪除這筆訂單？\n${o.gradeClass} ${o.studentName} ${o.size} ${o.quantity} 件\n（庫存會自動加回）`)) return;
+  if (!confirm(`確定刪除這筆訂單？\n${o.gradeClass} ${o.studentName} ${o.size} ${o.quantity} 件（${money(amountOf(o))}）\n（庫存會自動加回）`)) return;
 
   const orderRef = doc(db, ORDERS_COL, id);
   const invRef   = doc(db, INV_COL, o.size);
@@ -421,8 +446,14 @@ async function removeOrder(id) {
 
 function exportCsv() {
   const list = filteredOrders();
-  const rows = [["時間", "班級", "姓名", "尺寸", "數量"]];
-  list.forEach((o) => rows.push([fmtTime(o.timestamp), o.gradeClass, o.studentName, o.size, o.quantity]));
+  const rows = [["時間", "班級", "姓名", "尺寸", "數量", "單價", "金額"]];
+  list.forEach((o) => rows.push([
+    fmtTime(o.timestamp), o.gradeClass, o.studentName, o.size, o.quantity,
+    Number(o.unitPrice ?? UNIT_PRICE), amountOf(o)
+  ]));
+  rows.push(["合計", "", "", "",
+             list.reduce((a, o) => a + (Number(o.quantity) || 0), 0), "",
+             list.reduce((a, o) => a + amountOf(o), 0)]);
   const csv = "﻿" + rows
     .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
     .join("\r\n");
@@ -450,7 +481,7 @@ function bind() {
     b.addEventListener("click", () => switchView(b.dataset.view)));
 
   $("orderForm").addEventListener("submit", handleSubmit);
-  $("quantity").addEventListener("input", () => { $("orderError").hidden = true; });
+  $("quantity").addEventListener("input", () => { $("orderError").hidden = true; updateAmount(); });
   $("againBtn").addEventListener("click", () => {
     $("successBox").hidden = true;
     $("orderFormWrap").hidden = false;

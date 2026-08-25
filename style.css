@@ -79,6 +79,16 @@ input:focus,select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 
 }
 .btn-del{background:#fff;border:1px solid var(--danger);color:var(--danger);}
 
+.price-note{margin:-6px 0 0;font-size:.88rem;color:var(--muted);}
+.price-note b{color:var(--orange-dark);}
+.amount-box{
+  margin-top:16px;padding:12px 14px;border-radius:12px;
+  background:var(--orange-light);border:1px solid var(--orange-mid);
+  display:flex;justify-content:space-between;align-items:center;
+  font-weight:600;gap:10px;
+}
+.amount-box b{font-size:1.3rem;color:var(--orange-dark);}
+
 .success-box{text-align:center;}
 .check{
   width:64px;height:64px;line-height:64px;margin:6px auto 12px;border-radius:50%;

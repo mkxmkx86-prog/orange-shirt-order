@@ -22,6 +22,7 @@
 
     <div id="orderFormWrap" class="card">
       <h2>訂購單填寫</h2>
+        <p class="price-note">每件 <b>200 元</b>，請於送出訂單後向導師繳費。</p>
       <form id="orderForm" novalidate>
         <label for="gradeClass">班級 <span class="req">*</span></label>
         <select id="gradeClass" required>
@@ -39,6 +40,8 @@
         <label for="quantity">訂購數量 <span class="req">*</span></label>
         <input type="number" id="quantity" value="1" min="1" max="1" step="1" required>
         <p class="hint" id="qtyHint">請先選擇尺寸</p>
+
+        <div class="amount-box"><span>應繳金額</span><b id="amountText">—</b></div>
 
         <p class="error" id="orderError" hidden></p>
 
@@ -75,7 +78,7 @@
         <div class="table-scroll">
           <table id="invTable">
             <thead>
-              <tr><th>尺寸</th><th>剩餘庫存</th><th>已售出</th><th>調整庫存</th></tr>
+              <tr><th>尺寸</th><th>剩餘庫存</th><th>已售出</th><th>金額小計</th><th>調整庫存</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -102,7 +105,7 @@
         <div class="table-scroll">
           <table id="orderTable">
             <thead>
-              <tr><th>時間</th><th>班級</th><th>姓名</th><th>尺寸</th><th>數量</th><th></th></tr>
+              <tr><th>時間</th><th>班級</th><th>姓名</th><th>尺寸</th><th>數量</th><th>金額</th><th></th></tr>
             </thead>
             <tbody></tbody>
           </table>
