@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>橘衣訂購管理系統</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>🍊 學校橘衣訂購系統</h1>
+  <nav>
+    <button class="tab-btn active" data-view="order">學生訂購</button>
+    <button class="tab-btn" data-view="admin">管理後台</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ 前台：學生訂購 ============ -->
+  <section id="view-order" class="view active">
+
+    <div id="orderFormWrap" class="card">
+      <h2>訂購單填寫</h2>
+      <form id="orderForm" novalidate>
+        <label for="gradeClass">班級 <span class="req">*</span></label>
+        <select id="gradeClass" required>
+          <option value="">請選擇班級</option>
+        </select>
+
+        <label for="studentName">姓名 <span class="req">*</span></label>
+        <input type="text" id="studentName" maxlength="20" placeholder="請輸入學生姓名" required>
+
+        <label>尺寸選擇 <span class="req">*</span>（顯示剩餘數量）</label>
+        <div id="sizeGrid" class="size-grid">
+          <p class="loading">庫存讀取中…</p>
+        </div>
+
+        <label for="quantity">訂購數量 <span class="req">*</span></label>
+        <input type="number" id="quantity" value="1" min="1" max="1" step="1" required>
+        <p class="hint" id="qtyHint">請先選擇尺寸</p>
+
+        <p class="error" id="orderError" hidden></p>
+
+        <button type="submit" class="btn-primary" id="submitBtn">送出訂單</button>
+      </form>
+    </div>
+
+    <div id="successBox" class="card success-box" hidden>
+      <div class="check">✓</div>
+      <h2>訂購成功！</h2>
+      <p id="successDetail"></p>
+      <button class="btn-primary" id="againBtn">再訂一筆</button>
+    </div>
+  </section>
+
+  <!-- ============ 後台：管理老師 ============ -->
+  <section id="view-admin" class="view">
+
+    <div id="loginBox" class="card login-box">
+      <h2>🔒 管理員登入</h2>
+      <label for="adminPwd">請輸入管理密碼</label>
+      <input type="password" id="adminPwd" placeholder="密碼">
+      <p class="error" id="loginError" hidden>密碼錯誤，請重新輸入。</p>
+      <button class="btn-primary" id="loginBtn">登入</button>
+    </div>
+
+    <div id="adminPanel" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2>庫存管理看板</h2>
+          <button class="btn-ghost" id="logoutBtn">登出</button>
+        </div>
+        <div class="stats" id="statsBar"></div>
+        <div class="table-scroll">
+          <table id="invTable">
+            <thead>
+              <tr><th>尺寸</th><th>剩餘庫存</th><th>已售出</th><th>調整庫存</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>訂單總覽</h2>
+          <div class="filters">
+            <select id="filterClass"><option value="">全部班級</option></select>
+            <select id="filterSize"><option value="">全部尺寸</option></select>
+            <select id="sortBy">
+              <option value="time_desc">時間（新→舊）</option>
+              <option value="time_asc">時間（舊→新）</option>
+              <option value="class">依班級</option>
+              <option value="name">依姓名</option>
+              <option value="size">依尺寸</option>
+            </select>
+            <button class="btn-ghost" id="exportBtn">匯出 CSV</button>
+          </div>
+        </div>
+        <p class="hint" id="orderCount"></p>
+        <div class="table-scroll">
+          <table id="orderTable">
+            <thead>
+              <tr><th>時間</th><th>班級</th><th>姓名</th><th>尺寸</th><th>數量</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
