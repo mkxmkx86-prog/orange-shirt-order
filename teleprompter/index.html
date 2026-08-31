@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>讀稿機 Teleprompter</title>
+<meta name="description" content="輕量離線可用的網頁讀稿機，適合主持、致詞、簡報排練。">
+<meta name="theme-color" content="#111114">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+
+<!-- ===== 編輯畫面 ===== -->
+<main id="editor" class="editor">
+  <header class="editor__head">
+    <h1>讀稿機</h1>
+    <p class="hint">貼上講稿，調整設定後按「開始播放」。草稿會自動儲存在這台裝置。</p>
+  </header>
+
+  <textarea id="script" class="script-input" placeholder="在這裡貼上或輸入你的講稿…"
+            spellcheck="false" autocomplete="off"></textarea>
+
+  <div class="editor__meta">
+    <span id="stats" class="stats">0 字</span>
+    <span id="saveState" class="save-state" aria-live="polite"></span>
+  </div>
+
+  <section class="settings" aria-label="播放設定">
+    <label class="field">
+      <span class="field__label">捲動速度 <b id="speedVal">50</b></span>
+      <input type="range" id="speed" min="1" max="200" step="1" value="50">
+    </label>
+
+    <label class="field">
+      <span class="field__label">字級 <b id="fontVal">56</b> px</span>
+      <input type="range" id="fontSize" min="20" max="160" step="2" value="56">
+    </label>
+
+    <label class="field field--row">
+      <input type="checkbox" id="mirrorX">
+      <span>鏡像（左右翻轉）</span>
+    </label>
+
+    <label class="field field--row">
+      <input type="checkbox" id="mirrorY">
+      <span>上下翻轉</span>
+    </label>
+  </section>
+
+  <div class="editor__actions">
+    <button id="startBtn" class="btn btn--primary" type="button">開始播放</button>
+    <button id="clearBtn" class="btn" type="button">清空講稿</button>
+  </div>
+
+  <footer class="editor__foot">
+    <p>快捷鍵：<kbd>空白鍵</kbd> 播放/暫停 · <kbd>↑</kbd><kbd>↓</kbd> 調速 · <kbd>+</kbd><kbd>-</kbd> 字級 ·
+      <kbd>R</kbd> 重來 · <kbd>M</kbd> 鏡像 · <kbd>Esc</kbd> 離開</p>
+    <p id="offlineNote" class="hint"></p>
+  </footer>
+</main>
+
+<!-- ===== 全螢幕播放畫面 ===== -->
+<section id="player" class="player" hidden aria-label="播放畫面">
+  <div class="player__guide" aria-hidden="true"></div>
+
+  <div id="viewport" class="player__viewport">
+    <div id="scroller" class="player__scroller">
+      <div id="scriptView" class="player__text"></div>
+    </div>
+  </div>
+
+  <div id="controls" class="controls" role="toolbar" aria-label="播放控制">
+    <button id="playBtn" class="ctrl ctrl--play" type="button" aria-label="播放或暫停">▶</button>
+    <button id="restartBtn" class="ctrl" type="button" aria-label="重新開始">⟲</button>
+
+    <label class="ctrl-field">
+      <span>速度</span>
+      <input type="range" id="speed2" min="1" max="200" step="1" value="50">
+    </label>
+
+    <label class="ctrl-field">
+      <span>字級</span>
+      <input type="range" id="fontSize2" min="20" max="160" step="2" value="56">
+    </label>
+
+    <button id="mirrorBtn" class="ctrl" type="button" aria-pressed="false" aria-label="鏡像切換">鏡像</button>
+    <button id="exitBtn" class="ctrl ctrl--exit" type="button" aria-label="離開播放">離開</button>
+  </div>
+</section>
+
+<script src="js/storage.js?v=1"></script>
+<script src="js/app.js?v=1"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (err) {
+      console.warn('Service Worker 註冊失敗：', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
